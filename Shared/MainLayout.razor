@@ -1,0 +1,42 @@
+﻿@inherits LayoutComponentBase
+@implements IDisposable
+@inject IToastService toastService
+
+<BlazoredToasts />
+
+<PageTitle>Demo.RabbitMQ.Notifications</PageTitle>
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+    CancellationTokenSource messageConsumerCancellationToken = new();
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Messaging.RabbitMQ.MessageReceived += async (receivedMessage) => toastService.ShowInfo(receivedMessage);
+
+            new Messaging.RabbitMQ().Setup(messageConsumerCancellationToken.Token);
+        }
+    }
+
+    public void Dispose()
+    {
+        messageConsumerCancellationToken.Cancel();
+    }
+}
